@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guesty Demand map</title>
+    <style>
+        #map {
+            height: 100%;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #panel {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            margin-left: -180px;
+            z-index: 5;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #999;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+    <button onclick="toggleHeatmap('')">Show Demand Heatmap</button>
+    <button onclick="toggleHeatmap('all')">Show Supply Heatmap</button>
+</div>
+<script
+        src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBosXTY-O9QtXZb6IQ8b6-J2Q4Ru_D1590&libraries=visualization&callback=initMap">
+</script>
+<script>
+    var map, heatmap;
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 12,
+            center: {lat: 48.864716, lng: 2.349014},
+            mapTypeId: 'satellite'
+        });
+
+        heatmap = new google.maps.visualization.HeatmapLayer({
+            data: [],
+            map: map
+        });
+        getPoints('');
+    }
+
+    function toggleHeatmap(type) {
+        if (type === 'all') {
+            getPoints('all');
+        } else {
+            getPoints();
+        }
+    }
+
+
+    function getPoints(type) {
+        const typeText = (type === 'all') ? 'getAllListings' : 'getOnlyDemandedListings';
+        const output = [];
+        $.get("http://localhost:3000/" + typeText, function (data) {
+            for (let i in data) {
+                output.push(new google.maps.LatLng(data[i].lat, data[i].lng));
+            }
+            const newdata = new google.maps.MVCArray(output);
+
+            heatmap.set('data', newdata);
+            console.log(output);
+            return output;
+        });
+    }
+
+
+</script>
+</body>
+</html>
